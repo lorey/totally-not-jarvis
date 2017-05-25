@@ -11,59 +11,108 @@ from telegram.ext import Updater
 import config
 
 
+class Jarvis(object):
+    name = 'Jarvis'
+    contexts = []
+    default_context = None
+
+    def __init__(self):
+        self.default_context = DefaultContext(self)
+
+    def hello(self, bot, update):
+        bot.send_message(chat_id=update.message.chat_id, text="I'm totally not %s! Talk to me nonetheless." % self.name)
+
+    def receive(self, bot, update):
+        # decide what to do with update
+        print('received: %s' % update.message.text)
+
+        # get context
+        if len(self.contexts) > 0:
+            applicable_context = self.contexts[-1]
+        else:
+            # use default context
+            applicable_context = self.default_context
+
+        applicable_context.process(bot, update)
+
+        # remove completed contexts
+        for context in self.contexts:
+            if context.is_done():
+                self.contexts.remove(context)
+
+
+class DefaultContext(object):
+    jarvis = None
+
+    def __init__(self, jarvis):
+        self.jarvis = jarvis
+
+    def can_handle(self, bot, update):
+        return True
+
+    def process(self, bot, update):
+        if update.message is not None and update.message.text.startswith('/weather'):
+            context = WeatherContext()
+            self.jarvis.contexts.append(context)
+            context.process(bot, update)
+        else:
+            bot.send_message(chat_id=update.message.chat_id, text="I don't understand")
+
+
+class WeatherContext(object):
+
+    def can_handle(self, bot, update):
+        return True
+
+    def process(self, bot, update):
+        message = self.fetch_weather()
+        bot.send_message(chat_id=update.message.chat_id, text=message)
+
+    def fetch_weather(self):
+        url_template = 'http://api.openweathermap.org/data/2.5/forecast?lat=%f&lon=%f&APPID=%s'
+        url = url_template % (config.POSITION['lat'], config.POSITION['lon'], config.OPENWEATHERMAP_API_KEY)
+        response = requests.get(url)
+        json_plain = response.content.decode('utf-8')
+        data = json.loads(json_plain)
+        # print(json.dumps(data, indent=2))
+
+        msg = 'The weather forecast for %s:\n' % data['city']['name']
+        for forecast in data['list'][0:8]:
+            time = datetime.datetime.fromtimestamp(forecast['dt']).strftime('%H:%M')
+            description = forecast['weather'][0]['description']
+            temperature_celsius = forecast['main']['temp'] - 273.15
+            humidity = forecast['main']['humidity']
+
+            msg += '%s: %s (%d°C, %d%%)\n' % (time, description, temperature_celsius, humidity)
+
+        return msg
+
+    def is_done(self):
+        return True
+
+
 def main():
+    # jarviscalendar.print_events()
+    # exit()
+
     updater = Updater(token=config.TELEGRAM_TOKEN)
     print(updater.bot.get_me())
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-    dispatcher = updater.dispatcher
+    jarvis = Jarvis()
 
     handlers = [
-        CommandHandler('start', start_callback),
-        CommandHandler('whereami', whereami_callback),
-        CommandHandler('weather', weather_callback),
-        MessageHandler(Filters.text, plaintext_callback)
+        CommandHandler('start', jarvis.hello),
+        MessageHandler(Filters.all, jarvis.receive)
     ]
 
+    dispatcher = updater.dispatcher
     for handler in handlers:
         dispatcher.add_handler(handler)
 
     updater.start_polling()
-
-
-def start_callback(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text="I'm totally not Jarvis! Talk to me nonetheless.")
-
-
-def weather_callback(bot, update):
-    url_template = 'http://api.openweathermap.org/data/2.5/forecast?lat=%f&lon=%f&APPID=%s'
-    url = url_template % (config.POSITION['lat'], config.POSITION['lon'], config.OPENWEATHERMAP_API_KEY)
-    response = requests.get(url)
-    json_plain = response.content.decode('utf-8')
-    data = json.loads(json_plain)
-    # print(json.dumps(data, indent=2))
-
-    msg = 'The weather forecast for %s:\n' % data['city']['name']
-    for forecast in data['list'][0:8]:
-        time = datetime.datetime.fromtimestamp(forecast['dt']).strftime('%H:%M')
-        description = forecast['weather'][0]['description']
-        temperature_celsius = forecast['main']['temp'] - 273.15
-        humidity = forecast['main']['humidity']
-
-        msg += '%s: %s (%d°C, %d%%)\n' % (time, description, temperature_celsius, humidity)
-
-    bot.send_message(chat_id=update.message.chat_id, text=msg)
-
-
-def whereami_callback(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text='I have no idea.')
-
-
-def plaintext_callback(bot, update):
-    print('could not understand: %s' % update.message.text)
-    reply = 'I cannot understand "%s", sorry.' % update.message.text
-    bot.send_message(chat_id=update.message.chat_id, text=reply)
+    updater.idle()
 
 
 if __name__ == '__main__':

@@ -36,7 +36,7 @@ Skills I'd love to implement:
 
 The config file should look like this:
 
-```
+```python
 TELEGRAM_TOKEN = 'secret'
 TELEGRAM_CHAT_ID = 'secret'
 
@@ -56,7 +56,7 @@ ICAL_URL = "https://calendar.google.com/calendar/ical/blablabla/basic.ics"
 
 To implement own skills, you just have to extend the base class and make sure a command puts the context on top of the contexts stack. We'll start with a `RepeatContext` that just repeats your input:
 
-```
+```python
 class RepeatContext(BaseContext):
     def is_done(self):
         return True  # executed only once
@@ -71,7 +71,7 @@ The base class only has two methods that you need to implement:
 
 Afterwards, you just have to check for the command and open the context:
 
-```
+```python
 class DefaultContext(BaseContext):
     # ...
 

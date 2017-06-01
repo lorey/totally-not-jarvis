@@ -30,6 +30,9 @@ Skills I'd love to implement:
 - log current position on demand
 - save reminders
 - let others talk to the bot and play with it
+- write emails from own email address
+- send contacts your current phone number, etc.
+- delay tasks (e.g. meeting memos: delay so that the dialog reappears after 10 minutes)
 
 
 ## The config file: config.py
@@ -47,7 +50,11 @@ POSITION = {
     'lon': 8.4
 }
 
-ICAL_URL = "https://calendar.google.com/calendar/ical/blablabla/basic.ics"
+# self-chosen name: ical url
+ICAL_URLS = {
+    "private": "https://calendar.google.com/calendar/ical/exampleexampleexample/basic.ics",
+    "work": "https://calendar.google.com/calendar/ical/justanexample/public/basic.ics",
+}
 
 ```
 

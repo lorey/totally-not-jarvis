@@ -7,11 +7,13 @@ import config
 
 
 def get_events():
-    url = config.ICAL_URL
-    response = requests.get(url)
-
-    cal = Calendar.from_ical(response.content.decode('utf-8'))
-    events = [IcalEvent(comp) for comp in cal.subcomponents if type(comp) == Event]
+    urls = config.ICAL_URLS
+    events = []
+    for name, url in urls.items():
+        response = requests.get(url)
+        cal = Calendar.from_ical(response.content.decode('utf-8'))
+        calendar_events = [IcalEvent(comp) for comp in cal.subcomponents if type(comp) == Event]
+        events.extend(calendar_events)
     return events
 
 

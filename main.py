@@ -3,7 +3,6 @@ import logging
 
 from telegram.ext import CommandHandler
 from telegram.ext import Filters
-from telegram.ext import Job
 from telegram.ext import MessageHandler
 from telegram.ext import Updater
 
@@ -56,7 +55,7 @@ class Jarvis(object):
 
         next_event = jarviscalendar.get_next_event()
         time_to_event = next_event.get_start() - datetime.datetime.now(tz=datetime.timezone.utc)
-        if time_to_event.total_seconds() <= EVENT_TRIGGER_INTERVAL_IN_SECONDS:
+        if time_to_event.total_seconds() < EVENT_TRIGGER_INTERVAL_IN_SECONDS:
             # send event message
             msg = 'Next event: %s\n' % next_event.get_summary()
             msg += next_event.get_description()
@@ -68,10 +67,8 @@ class Jarvis(object):
             self.contexts.append(notes_context)
 
     def add_reminder(self, text, after_minutes):
-        after_seconds = after_minutes * 60
-
-        job = Job(self.send_reminder_callback, after_seconds, repeat=False, context=text)
-        self.updater.job_queue.put(job)
+        when = datetime.datetime.now() + datetime.timedelta(minutes=after_minutes)
+        self.updater.job_queue.run_once(self.send_reminder_callback, when, context=text)
 
     def send_reminder_callback(self, bot, job):
         bot.send_message(chat_id=config.TELEGRAM_CHAT_ID, text=job.context)
@@ -104,8 +101,8 @@ def main():
 
     jarvis = Jarvis(updater)
 
-    event_infos = Job(jarvis.events, EVENT_TRIGGER_INTERVAL_IN_SECONDS)
-    updater.job_queue.put(event_infos, next_t=0)
+    interval = datetime.timedelta(seconds=EVENT_TRIGGER_INTERVAL_IN_SECONDS)
+    updater.job_queue.run_repeating(jarvis.events, interval, first=0)
 
     handlers = [
         CommandHandler('start', jarvis.hello),

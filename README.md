@@ -38,26 +38,56 @@ Skills I'd love to implement:
 - schedule a meeting with doodle and/or ics
 - create drafts of emails via smtp
 
+## Example of meeting time proposals
+The command `/schedule` triggers the creation of an meeting proposal that is sent to all participants. It looks like this:
+
+```
+Hello,
+
+this is Jarvis, personal assistant of Karl Lorey. For your appointment ('Learning more about Jarvis, my personal
+assistant') I propose a time slot of 60 minutes on one of the following dates:
+- Tomorrow
+- Friday
+
+Currently, I just send the proposals, so please hit 'reply all' to get Karl Lorey back into the loop.
+__________
+Jarvis
+Personal Assistant of Karl Lorey
+
+You can find my code at https://github.com/lorey/totally-not-jarvis
+```
+
 ## The config file: config.py
 
 The config file should look like this:
 
 ```python
-TELEGRAM_TOKEN = 'secret'
-TELEGRAM_CHAT_ID = 'secret'
+# names
+BOT_NAME = 'Jarvis'
+OWNER_NAME = 'Karl Lorey'
+POSITION = {'lat': 49.01, 'lon': 8.4}
 
-OPENWEATHERMAP_API_KEY = 'secret'
+# telegram
+TELEGRAM_TOKEN = ''
+TELEGRAM_CHAT_ID = ''
 
-POSITION = {
-    'lat': 49.01,
-    'lon': 8.4
-}
+# weather
+OPENWEATHERMAP_API_KEY = ''
 
-# self-chosen name: ical url
+# calendar (name: url)
 ICAL_URLS = {
     "private": "https://calendar.google.com/calendar/ical/exampleexampleexample/basic.ics",
     "work": "https://calendar.google.com/calendar/ical/justanexample/public/basic.ics",
 }
+
+# email
+EMAIL_ADDRESS_JARVIS = 'jarvis@mail.com'
+EMAIL_ADDRESS_CC = 'your@mail.com'
+EMAIL_SMTP_HOST = 'www.server.com'
+EMAIL_SMTP_PORT = 465
+EMAIL_IMAP_USER = 'jarvis'
+EMAIL_IMAP_PASSWORD = 'captainwho?'
+
 
 ```
 

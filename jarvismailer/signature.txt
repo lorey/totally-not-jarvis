@@ -1,0 +1,5 @@
+__________
+%(bot)s
+Personal Assistant of %(owner)s
+
+You can find my code at https://github.com/lorey/totally-not-jarvis

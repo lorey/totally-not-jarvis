@@ -1,6 +1,8 @@
 import os
 from time import sleep
 
+import config
+import jarvismailer
 import nlphelpers
 from context import BaseContext
 
@@ -18,12 +20,13 @@ class MeetingProposal(object):
         with open(filename, 'r') as file:
             template = file.read()
 
-        # customize template
-        list_of_dates = '\n'.join(['- %s' % when for when in self.when])
+        # fill template
         data = {
             'why': self.why,
             'length': self.length,
-            'list_of_dates': list_of_dates
+            'list_of_dates': '\n'.join(['- %s' % when for when in self.when]),
+            'owner': config.OWNER_NAME,
+            'bot': config.BOT_NAME,
         }
         message = template % data
 
@@ -72,10 +75,16 @@ class ScheduleMeetingContext(BaseContext):
             # ask question for next entity
             self.send_message(self.current_entity, bot, update)
         else:
+            # use context to send mail
+            # todo: actually integrate context
             print(self.meeting_proposal)
-            bot.send_message(chat_id=update.message.chat_id, text='Okay, this is the email you can send out:')
-            sleep(0.5)
-            bot.send_message(chat_id=update.message.chat_id, text=self.meeting_proposal.get_message())
+            email = jarvismailer.Email()
+            email.subject = self.meeting_proposal.why
+            email.message = self.meeting_proposal.get_message()
+            email.to = self.meeting_proposal.who
+
+            jm = jarvismailer.MailerContext(email)
+            jm.process(bot, update)
 
     def is_done(self):
         return len(self.get_unprocessed_entities()) == 0

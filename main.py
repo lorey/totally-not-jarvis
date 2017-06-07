@@ -10,6 +10,7 @@ from telegram.ext import Updater
 import config
 import jarviscalendar
 import jarvismeetingnotes
+import jarvismeetingscheduler
 import jarvisweather
 from context import BaseContext
 
@@ -85,6 +86,10 @@ class DefaultContext(BaseContext):
     def process(self, bot, update):
         if update.message is not None and update.message.text.startswith('/weather'):
             context = jarvisweather.WeatherContext()
+            self.jarvis.contexts.append(context)
+            context.process(bot, update)
+        elif update.message is not None and update.message.text.startswith('/schedule'):
+            context = jarvismeetingscheduler.ScheduleMeetingContext(self.jarvis)
             self.jarvis.contexts.append(context)
             context.process(bot, update)
         else:

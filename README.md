@@ -19,6 +19,7 @@ Current skills:
 - Check the weather (based on [OpenWeatherMap](https://openweathermap.org/api))
 - Check the next calendar entry (iCal integration that works with Google Calendar)
 - Ask me to take memos during meetings and remind me later (based on iCAL calendar entries)
+- Create messages that propose dates for a meeting
 
 Features:
 - Context classes that encapsulate dialogs, e.g. checking the weather.
@@ -33,7 +34,9 @@ Skills I'd love to implement:
 - write emails from own email address
 - send contacts your current phone number, etc.
 - delay tasks (e.g. meeting memos: delay so that the dialog reappears after 10 minutes)
-
+- email meeting memos to participants
+- schedule a meeting with doodle and/or ics
+- create drafts of emails via smtp
 
 ## The config file: config.py
 

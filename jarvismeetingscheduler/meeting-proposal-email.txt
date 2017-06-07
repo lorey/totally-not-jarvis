@@ -1,0 +1,6 @@
+Hello,
+
+for our appointment ('%(why)s') I propose a time slot of %(length)d minutes on one of the following dates:
+%(list_of_dates)s
+
+Tell me what you think.

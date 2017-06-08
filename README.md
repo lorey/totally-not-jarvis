@@ -2,7 +2,7 @@
 
 # Totally not Jarvis - a personal assistant bot
 
-This is a personal assistant bot built with [Telegram](https://github.com/python-telegram-bot/python-telegram-bot). I've attempted to lay the foundations for a context-sensitive framework that allows you to switch contexts by issuing new commands while not forgetting about old commands. An example:
+This is a personal assistant bot built with [Telegram](https://github.com/python-telegram-bot/python-telegram-bot). I've attempted to lay the foundations for a framework that allows you to switch intents by issuing new commands while not forgetting about old intents. An example:
 
 ```
 Jarvis: Karl, what are you planning to do today?
@@ -16,10 +16,10 @@ Jarvis: Oh, a very good idea.
 Note: Most other bots would forget about their initial question (plans for the day) if you issue a new command. But not mine :)
 
 Current skills:
-- Check the weather (based on [OpenWeatherMap](https://openweathermap.org/api))
-- Check the next calendar entry (iCal integration that works with Google Calendar)
 - Ask me to take memos during meetings and remind me later (based on iCAL calendar entries)
 - Create messages that propose dates for a meeting
+- Check the weather (based on [OpenWeatherMap](https://openweathermap.org/api))
+- Check the next calendar entry (iCal integration that works with Google Calendar)
 
 Features:
 - Context classes that encapsulate dialogs, e.g. checking the weather.
@@ -38,28 +38,28 @@ Skills I'd love to implement:
 - schedule a meeting with doodle and/or ics
 - create drafts of emails via smtp
 
+
 ## Example of meeting time proposals
-The command `/schedule` triggers the creation of an meeting proposal that is sent to all participants. It looks like this:
+The command `/schedule` triggers the creation of an meeting proposal that is sent to all participants after you have answered all necessary questions. It looks like this:
 
-```
-Hello,
+> Hello,
+>
+> this is Jarvis, personal assistant of Karl Lorey. For your appointment ('Learning more about Jarvis, my personal
+> assistant') I propose a time slot of 60 minutes on one of the following dates:
+> - Tomorrow
+> - Friday
+>
+> Currently, I just send the proposals, so please hit 'reply all' to get Karl Lorey back into the loop.
+> __________
+> Jarvis
+> Personal Assistant of Karl Lorey
+>
+> You can find my code at https://github.com/lorey/totally-not-jarvis
 
-this is Jarvis, personal assistant of Karl Lorey. For your appointment ('Learning more about Jarvis, my personal
-assistant') I propose a time slot of 60 minutes on one of the following dates:
-- Tomorrow
-- Friday
-
-Currently, I just send the proposals, so please hit 'reply all' to get Karl Lorey back into the loop.
-__________
-Jarvis
-Personal Assistant of Karl Lorey
-
-You can find my code at https://github.com/lorey/totally-not-jarvis
-```
 
 ## The config file: config.py
 
-The config file should look like this:
+The config file should look like this (not included for obvious reasons):
 
 ```python
 # names

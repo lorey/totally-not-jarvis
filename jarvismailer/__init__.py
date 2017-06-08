@@ -3,7 +3,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-import logging
+import telegram
 
 import config
 from context import BaseContext
@@ -19,18 +19,35 @@ class Email(object):
 
 class MailerContext(BaseContext):
     email = None
+    is_done_ = False
 
     def __init__(self, email: Email):
         self.email = email
 
     def is_done(self):
-        return True
+        return self.is_done_
+
+    def start(self, bot):
+        bot.send_message(chat_id=config.TELEGRAM_CHAT_ID, text='I\'m about to send the following email:')
+        bot.send_message(chat_id=config.TELEGRAM_CHAT_ID, text=self.email.__dict__)
+
+        keyboard = [['Yes', 'No']]
+        reply_markup = telegram.ReplyKeyboardMarkup(keyboard)
+        bot.send_message(chat_id=config.TELEGRAM_CHAT_ID, text='Would you like to send this email?',
+                         reply_markup=reply_markup)
 
     def process(self, bot, update):
-        print('Trying to send a mail')
-        print(self.email.__dict__)
-        send_email(self.email)
-        bot.send_message(chat_id=update.message.chat_id, text='Okay, I have sent the mail successfully.')
+        if update.message.text == 'Yes':
+            print('Trying to send a mail')
+            print(self.email.__dict__)
+            send_email(self.email)
+            bot.send_message(chat_id=update.message.chat_id, text='Okay, I have sent the mail successfully.',
+                             reply_markup=telegram.ReplyKeyboardRemove())
+        else:
+            bot.send_message(chat_id=update.message.chat_id, text='Okay, I will not send a mail.',
+                             reply_markup=telegram.ReplyKeyboardRemove())
+
+        self.is_done_ = True
 
 
 def send_email(email):

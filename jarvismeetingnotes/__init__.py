@@ -19,15 +19,13 @@ class MeetingNotesContext(BaseContext):
         self.jarvis = jarvis
 
     def start(self, bot):
-        # used if context is started by external trigger: has no update that was received
         self.state = 'asking'
         self.ask_if_desired(bot)
 
     def process(self, bot, update):
         if self.state is None:
             # start was not used. try to start nonetheless but issue an error
-            self.state = 'asking'
-            self.ask_if_desired(bot)
+            self.start(bot)
             logging.error('start was not used, incoming message is ignored.')
             return
 
@@ -48,6 +46,8 @@ class MeetingNotesContext(BaseContext):
         reminder_text += notes
         self.jarvis.add_reminder(reminder_text, 60)
 
+        self.is_done_ = True
+
     def process_asking(self, bot, update):
         if update.message.text == 'Yes':
             bot.send_message(chat_id=config.TELEGRAM_CHAT_ID, text='Starting to record notes for this meeting:',
@@ -55,9 +55,9 @@ class MeetingNotesContext(BaseContext):
             self.state = 'memo'
         elif update.message.text in ['No', 'Later']:
             bot.send_message(chat_id=config.TELEGRAM_CHAT_ID, text='Okay.', reply_markup=telegram.ReplyKeyboardRemove())
-            self.state = 'memo'
             self.is_done_ = True
         else:
+            # didn't understand answer, ask again
             self.ask_if_desired(bot)
 
     def ask_if_desired(self, bot):

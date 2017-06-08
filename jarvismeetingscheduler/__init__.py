@@ -4,7 +4,7 @@ from time import sleep
 import config
 import jarvismailer
 import nlphelpers
-from context import BaseContext
+from context import BaseContext, StateContext, QuestionAnswerContext
 
 
 class MeetingProposal(object):
@@ -36,7 +36,7 @@ class MeetingProposal(object):
         return 'MeetingProposal: ' + str(self.__dict__)
 
 
-class ScheduleMeetingContext(BaseContext):
+class ScheduleMeetingContext(StateContext):
     jarvis = None
 
     meeting_proposal = None
@@ -59,35 +59,43 @@ class ScheduleMeetingContext(BaseContext):
     current_entity = None
 
     def __init__(self, jarvis):
+        super().__init__()
         self.jarvis = jarvis
         self.meeting_proposal = MeetingProposal()
 
-    def process(self, bot, update):
-        if self.current_entity is not None:
-            # process entity
-            self.process_entity(self.current_entity, update)
-            self.processed_entities.append(self.current_entity)
+    def start(self, bot):
+        bot.send_message(chat_id=config.TELEGRAM_CHAT_ID, text='Okay, let\'s schedule a meeting.')
+        self.current_context.start(bot)
 
-        # get next entity to process
-        self.current_entity = self.get_next_entity()
+    def decide_next_context(self, last_context=None):
+        # process last context
+        if last_context is not None:
+            self.process_finished_context(last_context)
+            self.processed_entities.append(last_context.name)
 
-        if self.current_entity is not None:
-            # ask question for next entity
-            self.send_message(self.current_entity, bot, update)
-        else:
-            # use context to send mail
-            # todo: actually integrate context
-            print(self.meeting_proposal)
-            email = jarvismailer.Email()
-            email.subject = self.meeting_proposal.why
-            email.message = self.meeting_proposal.get_message()
-            email.to = self.meeting_proposal.who
+        # instantiate next context
+        next_context = None
 
-            jm = jarvismailer.MailerContext(email)
-            jm.process(bot, update)
+        next_entity_key = self.get_next_entity()
+        if next_entity_key is not None:
+            question = self.entities[next_entity_key]['question']
 
-    def is_done(self):
-        return len(self.get_unprocessed_entities()) == 0
+            next_context = QuestionAnswerContext(question)
+            next_context.name = next_entity_key
+        elif 'email' not in self.processed_entities:
+            # mail has not been sent.
+            next_context = self.create_email_context()
+            next_context.name = 'email'
+
+        return next_context
+
+    def create_email_context(self):
+        email = jarvismailer.Email()
+        email.subject = self.meeting_proposal.why
+        email.message = self.meeting_proposal.get_message()
+        email.to = self.meeting_proposal.who
+        next_context = jarvismailer.MailerContext(email)
+        return next_context
 
     def get_next_entity(self):
         unprocessed_entities = self.get_unprocessed_entities()
@@ -96,19 +104,13 @@ class ScheduleMeetingContext(BaseContext):
     def get_unprocessed_entities(self):
         return [entity for entity in self.entities if entity not in self.processed_entities]
 
-    def send_message(self, entity, bot, update):
-        question = self.entities[entity]['question']
-        bot.send_message(chat_id=update.message.chat_id, text=question)
-
-    def process_entity(self, entity, update):
-        if entity == 'participants':
-            participants = nlphelpers.extract_list(update.message.text)
+    def process_finished_context(self, context):
+        if context.name == 'participants':
+            participants = nlphelpers.extract_list(context.answer)
             self.meeting_proposal.who = participants
-        elif entity == 'proposed_time':
-            self.meeting_proposal.when = nlphelpers.extract_list(update.message.text)
-        elif entity == 'occasion':
-            self.meeting_proposal.why = update.message.text
-        elif entity == 'length':
-            self.meeting_proposal.length = int(update.message.text)
-        else:
-            raise RuntimeError('unknown entity: %s' % entity)
+        elif context.name == 'proposed_time':
+            self.meeting_proposal.when = nlphelpers.extract_list(context.answer)
+        elif context.name == 'occasion':
+            self.meeting_proposal.why = context.answer
+        elif context.name == 'length':
+            self.meeting_proposal.length = int(context.answer)

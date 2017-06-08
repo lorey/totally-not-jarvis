@@ -84,11 +84,11 @@ class DefaultContext(BaseContext):
         if update.message is not None and update.message.text.startswith('/weather'):
             context = jarvisweather.WeatherContext()
             self.jarvis.contexts.append(context)
-            context.process(bot, update)
+            context.start(bot)
         elif update.message is not None and update.message.text.startswith('/schedule'):
             context = jarvismeetingscheduler.ScheduleMeetingContext(self.jarvis)
             self.jarvis.contexts.append(context)
-            context.process(bot, update)
+            context.start(bot)
         else:
             bot.send_message(chat_id=update.message.chat_id, text="I don't understand")
 

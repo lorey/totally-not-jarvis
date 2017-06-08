@@ -29,30 +29,33 @@ class MailerContext(BaseContext):
     def process(self, bot, update):
         print('Trying to send a mail')
         print(self.email.__dict__)
+        send_email(self.email)
+        bot.send_message(chat_id=update.message.chat_id, text='Okay, I have sent the mail successfully.')
 
-        to_addresses = self.email.to
-        from_address = config.EMAIL_ADDRESS_JARVIS
-        cc_addresses = [config.EMAIL_ADDRESS_CC]
 
-        # compose message
-        msg = MIMEMultipart()
-        msg['From'] = from_address
-        msg['To'] = ','.join(to_addresses)
-        msg['Cc'] = ','.join(cc_addresses)
-        msg['Subject'] = self.email.subject
+def send_email(email):
+    from_address = config.EMAIL_ADDRESS_JARVIS
+    to_addresses = email.to
+    cc_addresses = [config.EMAIL_ADDRESS_CC]
 
-        message_content = '\n'.join([self.email.message, get_signature()])
-        mime_text = MIMEText(message_content, 'plain')
-        msg.attach(mime_text)
+    # compose message
+    msg = MIMEMultipart()
 
-        with smtplib.SMTP_SSL(config.EMAIL_SMTP_HOST, config.EMAIL_SMTP_PORT) as s:
-            # todo works for me but not for everyone
-            s.ehlo()
-            s.login(config.EMAIL_IMAP_USER, config.EMAIL_IMAP_PASSWORD)
+    msg['From'] = from_address
+    msg['To'] = ','.join(to_addresses)
+    msg['Cc'] = ','.join(cc_addresses)
+    msg['Subject'] = email.subject
 
-            s.send_message(msg)
+    message_content = '\n'.join([email.message, get_signature()])
+    mime_text = MIMEText(message_content, 'plain')
+    msg.attach(mime_text)
 
-        bot.send_message(chat_id=update.message.chat_id, text='Okay, I sent the mail successfully.')
+    with smtplib.SMTP_SSL(config.EMAIL_SMTP_HOST, config.EMAIL_SMTP_PORT) as s:
+        # todo works for me but not for everyone
+        s.ehlo()
+        s.login(config.EMAIL_IMAP_USER, config.EMAIL_IMAP_PASSWORD)
+
+        s.send_message(msg)
 
 
 def get_signature():

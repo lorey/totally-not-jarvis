@@ -128,5 +128,6 @@ class DefaultContext(BaseContext):
 
 If you came here for the HubSpot integration, make sure to check out my other projects:
 
+- [awesome-hubspot: Tools and libraries for HubSpot](https://github.com/lorey/awesome-hubspot)
 - [hubspot-contact-import: A HubSpot import tool for vcards and Xing](https://github.com/lorey/hubspot-contact-import)
 - [hubspot-reporting: tool to generate diagrams from your HubSpot data](https://github.com/lorey/hubspot-reporting)
